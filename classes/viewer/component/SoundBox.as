@@ -27,6 +27,7 @@ package classes.viewer.component
 			}
 		}
 		
+		
 		public function setResult(step:int, detects:Vector.<DetectData>){
 			results.push(detects)
 		}

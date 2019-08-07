@@ -23,14 +23,14 @@ package classes.viewer.component
 				var sets:Vector.<DiceSet> = new Vector.<DiceSet>()
 				for(var x:int=0; x<3; ++x){
 					var dice:DiceSet = DiceSet(DisplayUtil.getChildByName(diceSet,"_diceSet" + x));	
-					dice.visible = false
+					dice.alpha = 0
 					sets.push(dice)
 				}
 				diceSets.push(sets)
 					
 				var text:TextField = TextField(DisplayUtil.getChildByName(this,"_text" + i));
 				texts.push(text)
-				if(i != 0) text.visible = false
+				text.alpha = 0
 			}
 			tab = Sprite(DisplayUtil.getChildByName(this,"_tab"));
 		}
@@ -38,35 +38,42 @@ package classes.viewer.component
 		private var currentText:TextField = null
 		private var currentDiceSet:Vector.<DiceSet> = null
 
+		public function setNextStep(step:int){
+			changeStep(step)
+			for(var i:int=0; i<currentDiceSet.length; ++i){
+				currentDiceSet[i].alpha = 0
+			}
+		}	
+			
 		public function setResult(step:int, detects:Vector.<DetectData>){
 			setCurrentStep(step)
 			var len:int = detects.length
 			for(var i:int=0; i<len; ++i){
 				var detect:DetectData = detects[i]
-				currentDiceSet[i].visible = true
 				currentDiceSet[i].setDice(detect.color,detect.idx)
 			}
-			currentText.visible = true
 		}
 		
 		public function setCurrentStep(step:int){
+			changeStep(step)
+			for(var i:int=0; i<currentDiceSet.length; ++i){
+				currentDiceSet[i].alpha = 1
+			}
+		}
+		
+		public function changeStep(step:int){
 			if(currentText != null) currentText.alpha = 0.5
-				
-			var i:int
+			
 			if(currentDiceSet != null){
-				for(i=0; i<currentDiceSet.length; ++i){
+				for(var i:int=0; i<currentDiceSet.length; ++i){
 					currentDiceSet[i].alpha = 0.5
 				}
 			}
 			TweenLite.to(tab, 0.3, { x:(step*tab.width) });
 			currentDiceSet = diceSets[step]
 			currentText = texts[step]
-				
 			currentText.alpha = 1
-			for(i=0; i<currentDiceSet.length; ++i){
-				currentDiceSet[i].alpha = 1
-			}
-		}
+		}	
 		
 	}
 }

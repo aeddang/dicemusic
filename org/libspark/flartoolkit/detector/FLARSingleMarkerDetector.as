@@ -29,7 +29,6 @@
  */
 
 package org.libspark.flartoolkit.detector {
-	import org.libspark.flartoolkit.core.pickup.FLARDynamicRatioColorPatt_O3;
 	import org.libspark.flartoolkit.FLARException;
 	import org.libspark.flartoolkit.core.FLARCode;
 	import org.libspark.flartoolkit.core.FLARSquare;
@@ -39,6 +38,7 @@ package org.libspark.flartoolkit.detector {
 	import org.libspark.flartoolkit.core.match.FLARMatchPatt_Color_WITHOUT_PCA;
 	import org.libspark.flartoolkit.core.param.FLARParam;
 	import org.libspark.flartoolkit.core.pickup.FLARColorPatt_O3;
+	import org.libspark.flartoolkit.core.pickup.FLARDynamicRatioColorPatt_O3;
 	import org.libspark.flartoolkit.core.pickup.IFLARColorPatt;
 	import org.libspark.flartoolkit.core.raster.FLARRaster_BitmapData;
 	import org.libspark.flartoolkit.core.raster.IFLARRaster;
@@ -160,7 +160,6 @@ package org.libspark.flartoolkit.detector {
 			if (number_of_square < 1) {
 				return false;
 			}
-
 			// 評価基準になるパターンをイメージから切り出す
 			if (!this._patt.pickFromRaster(i_raster, l_square_list.getItem(0) as FLARSquare)) {
 				// パターンの切り出しに失敗
@@ -181,7 +180,9 @@ package org.libspark.flartoolkit.detector {
 			var c2:Number;
 			for (i = 1;i < number_of_square; i++) {
 				// 次のパターンを取得
-				this._patt.pickFromRaster(i_raster, l_square_list.getItem(i) as FLARSquare);
+				var fs:FLARSquare = l_square_list.getItem(i) as FLARSquare
+
+				this._patt.pickFromRaster(i_raster, fs);
 				// 評価器にセットする。
 				this._match_patt.setPatt(this._patt);
 				// コードと比較する

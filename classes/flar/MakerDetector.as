@@ -13,6 +13,8 @@ package classes.flar
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	
+	import classes.model.DetectData;
+	
 	import org.libspark.flartoolkit.core.FLARCode;
 	import org.libspark.flartoolkit.core.param.FLARParam;
 	import org.libspark.flartoolkit.core.raster.rgb.FLARRgbRaster_BitmapData;
@@ -68,7 +70,8 @@ package classes.flar
 		}
 		
 		private function onLoadCode(e:Event):void {
-			code = new FLARCode(16, 16);
+			var scale:Number = 14.04/17.64*100
+			code = new FLARCode(16, 16, scale, scale);
 			code.loadARPatt(loader.data);
 			
 			loader.removeEventListener(Event.COMPLETE, onLoadCode);
@@ -84,20 +87,33 @@ package classes.flar
 		}
 		
 		private var resultMat:FLARTransMatResult = new FLARTransMatResult();
-		public function detect(bitmapData:BitmapData):FLARTransMatResult{
+		public function detect(bitmapData:BitmapData, color:int, dice:int, minConfidence:Number = 0.9):DetectData{
 			capture.bitmapData.draw(bitmapData)
 			var detected:Boolean = false;
+			var confidence:Number = 0
 			try {
+	
+				var find:Boolean = detector.detectMarkerLite(raster, codeWidth)
+				confidence = detector.getConfidence()
+				if( confidence > minConfidence && find == true ){
+					trace( "color : "+ color +" ************* dice : "+ dice)
+					trace( "confidence : " +find+" "+confidence)
+				}
+				detected = find && confidence > minConfidence;
 				
-				detected = detector.detectMarkerLite(raster, 80) && detector.getConfidence() > 0.5;
 			} catch (e:Error) {
 				return null
 			}
 			if(detected){
 				detector.getTransformMatrix(resultMat)
-				trace( "resultMat.x : " +resultMat.m03)
-				trace( "resultMat.y : " +resultMat.m13)
-				return resultMat
+				var result:DetectData = new DetectData()
+				result.confidence = confidence
+				result.color = color
+				result.idx = dice
+				result.mat = resultMat
+				result..tx = (bitmapData.width/2) - resultMat.m03
+				result.ty = (bitmapData.height/2) + resultMat.m13	
+				return result
 			}else{
 				return null
 			}

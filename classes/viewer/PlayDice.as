@@ -41,7 +41,7 @@ package classes.viewer
 				dices.push(dice)
 				texts.push(text)
 			}
-			
+		
 			diceSets.visible = false
 			motion.visible = false
 			soundBox.visible = false
@@ -92,6 +92,7 @@ package classes.viewer
 				complete()
 				return
 			}
+			sheet.setNextStep( step )
 			Main.instence.finder.resumeDetect()
 			TweenLite.to(diceSets, 0.3, {autoAlpha:0});
 			motion.play()

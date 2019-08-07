@@ -2,23 +2,10 @@ package classes
 {
 	public class Config
 	{
-		public static const CAMERA_FILES:Array = [
-			'data/camera_para.dat',
-			'data/camera_para.dat',
-			'data/camera_para.dat',
-			'data/camera_para.dat',
-			'data/camera_para.dat',
-			'data/camera_para.dat'
-		]
-			
-		public static const CODE_FILES:Array = [
-			'data/marker64.pat',
-			'data/marker64.pat',
-			'data/flarlogo.pat',
-			'data/marker64.pat',
-			'data/flarlogo.pat',
-			'data/flarlogo.pat'
-		]
+		public static const CAMERA_FILE:String = 'data/cam.dat'
+		public static const CODE_FILE_PATH = "data/pattern-dice"
+		public static const DICE_NUM:int = 6	
+	
 			
 		public static const INSTRUMENTS:Array = [
 			'가야금',

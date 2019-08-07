@@ -36,7 +36,7 @@ package com.libs.utils
 				var symbolClass : Class = ApplicationDomain.currentDomain.getDefinition(className) as Class;
 				return new symbolClass() as DisplayObject;
 			}
-			//trace("DisplayUtil : "+className+" is null")
+			trace("DisplayUtil : "+className+" is null")
 			return null;
 		}
 		public static function setChildIndexByValue (pmc:DisplayObjectContainer,value:String="z",isNumeric:Boolean=true)

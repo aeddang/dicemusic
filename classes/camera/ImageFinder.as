@@ -13,7 +13,7 @@ package classes.camera
 	import flash.media.Camera;
 	import flash.media.Video;
 	import flash.utils.Timer;
-	
+	import com.libs.utils.ColorFilter
 	import classes.model.DetectData;
 
 	public class ImageFinder extends EventDispatcher
@@ -30,7 +30,7 @@ package classes.camera
 		{
 		}
 		
-		public function init(_canvasWidth:int = 320, _canvasHeight:int = 240, _fps:int = 30):void{
+		public function init(_canvasWidth:int = 320, _canvasHeight:int = 240, _fps:int = 24):void{
 			canvasWidth = _canvasWidth;
 			canvasHeight = _canvasHeight;
 			fps = _fps;
@@ -151,11 +151,8 @@ package classes.camera
 			var compareData = getCompareData(data)
 			var current = isSameData(compareData)
 			prevData = compareData	
-			
 			sameComparedStack = (current == isSame) ? (sameComparedStack+1) : 0
 			isSame = current
-			//trace( "sameComparedStack " + sameComparedStack +" " + current)	
-			
 			var minStack = current ? MIN_FIX_STACK : MIN_CHANGE_STACK
 			
 			if(sameComparedStack >= minStack){ 
@@ -213,7 +210,7 @@ package classes.camera
 		
 		private function getCompareData(data:BitmapData):BitmapData
 		{	
-			return getGrayScale(getResize(data))
+			return ColorFilter.grayScale(getResize(data))
 		}
 		
 		private  function getResize(data:BitmapData, thumbWidth:Number=COMPARE_SIMILARITY_PIXEL, thumbHeight:Number=COMPARE_SIMILARITY_PIXEL):BitmapData {
@@ -222,21 +219,6 @@ package classes.camera
 			var resize:BitmapData = new BitmapData(thumbWidth, thumbHeight, false);
 			resize.draw(data, m);
 			return resize
-		}
-		
-		private function getGrayScale(data:BitmapData):BitmapData
-		{
-			var rLum : Number = 0.2225;
-			var gLum : Number = 0.7169;
-			var bLum : Number = 0.0606; 	
-			var matrix:Array = [ rLum, gLum, bLum, 0, 0,
-				rLum, gLum, bLum, 0, 0,
-				rLum, gLum, bLum, 0, 0,
-				0,    0,    0,    1, 0 ];
-			
-			var filter:ColorMatrixFilter = new ColorMatrixFilter( matrix );
-			data.applyFilter( data, new Rectangle( 0,0,data.width,data.height ), new Point(0,0), filter );
-			return data
 		}
 		
 		
