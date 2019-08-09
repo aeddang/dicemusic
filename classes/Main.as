@@ -1,4 +1,4 @@
-package classes
+﻿package classes
 {
 	import com.greensock.TweenLite;
 	import com.greensock.plugins.AutoAlphaPlugin;
@@ -11,16 +11,21 @@ package classes
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.MovieClip;
+	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageDisplayState;
 	import flash.display.StageScaleMode;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
+	import flash.ui.Mouse;
+	import flash.utils.Timer;
 	
 	import classes.camera.FinderEvent;
 	import classes.camera.ImageFinder;
@@ -47,13 +52,13 @@ package classes
 		public var soundPlayer:SoundPlayer = new SoundPlayer()
 		public var finder:ImageFinder = new ImageFinder()
 		public var instruments:Vector.<InstrumentData> = new Vector.<InstrumentData>
+		public var bgInstrument:InstrumentData 
 		private var diceDetectors:Vector.<MakerDetector> = new Vector.<MakerDetector>
-		private var detectors:Vector.<Vector.<MakerDetector>> = new Vector.<Vector.<MakerDetector>>
 		private var isDebugMode:Boolean = true
 		private var infoText:TextField
 		public function Main() 
 		{
-			//stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE; 
+			stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE; 
 			stage.scaleMode = StageScaleMode.SHOW_ALL;
 			stage.showDefaultContextMenu = false;
 			
@@ -63,14 +68,8 @@ package classes
 			setDebugMode()
 			
 			
-			
-		
 			_instence = this;
 			
-			infoText=TextField(DisplayUtil.getChildByName(this,"_infoText"));	
-			//finder.init()
-			setupInstrument()
-			setupDetector()
 			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage )	
 		}
 		
@@ -82,55 +81,39 @@ package classes
 				var instrument:InstrumentData = new InstrumentData(i,Config.COLORS[i], Config.INSTRUMENTS[i] )
 				instruments.push(instrument)
 			}	
+			bgInstrument = new InstrumentData(num ,Config.COLORS[0], Config.INSTRUMENTS[0] )
 		}
 		
 		private function setupDetector(){
 			var num = Config.INSTRUMENTS.length
 			for(var i:int=0; i<num; ++i ){
 				var diceDetector:MakerDetector = new MakerDetector()
-				diceDetector.init( Config.CAMERA_FILE, Config.CODE_FILE_PATH+"_"+(i+1)+".patt")
+				diceDetector.init( Config.CAMERA_FILE, Config.CODE_FILE_PATH+"_"+(i+1)+".patt", Config.CANVAS_SIZE.x, Config.CANVAS_SIZE.y)
 				diceDetectors.push(diceDetector)
-				/*	
-				var detectorSet:Vector.<MakerDetector> = new Vector.<MakerDetector>
-				for(var x:int=1; x<=6; ++x ){
-					var detector:MakerDetector = new MakerDetector()
-					detector.init( Config.CAMERA_FILE, Config.CODE_FILE_PATH+i+"_"+x+".patt")
-					detector.addEventListener(Event.INIT, onReady )	
-					detectorSet.push(detector)
-				}
-				detectors.push(detectorSet)
-					*/
+				diceDetector.addEventListener(Event.INIT, onReady )	
 			}	
 		}
 		
 		private var stackReady:int = 0
 		private function onReady(e:Event):void {
 			stackReady++
-			if(stackReady == Config.INSTRUMENTS.length) {
-				finder.start()
+			if(stackReady == Config.DICE_NUM) {
 				/*
-				var detects:Vector.<DetectData> = new Vector.<DetectData>
-				detects.push(new DetectData())
-				detects.push(new DetectData())
-				detects.push(new DetectData())
-				setSelectedDice(detects)
-				
-				viewerChange(VIEWER_PLAY_DICE)
-				var test:PlayDice = currentViewer as PlayDice
+				var testData:BitmapData = new TestData1()
+				var btmData:BitmapData = ColorFilter.monoChromeByHueRange(testData.clone(), 20, 40)
+				debug1.graphics.beginBitmapFill(btmData, null, false, true);
+				debug1.graphics.drawRect(0, 0, btmData.width, btmData.height);	
 				*/
+				finder.start()
+				
 			}
 		}
 		
 		private function onAddedToStage(e:Event = null):void {
-				
-			var testData:BitmapData = new TestData0()
-			var btmData:BitmapData = ColorFilter.monoChromeByHueRange(testData.clone(), 0, 100)
-			var detects:Vector.<DetectData> = detectDice(btmData)
-			trace( "onAddedToStage "+detects.length)
-				
-			debug1.graphics.beginBitmapFill(btmData, null, false, true);
-			debug1.graphics.drawRect(0, 0, btmData.width, btmData.height);	
-			return
+			infoText=TextField(DisplayUtil.getChildByName(this,"_infoText"));	
+			finder.init(Config.CANVAS_SIZE.x, Config.CANVAS_SIZE.y)
+			setupInstrument()
+			setupDetector()
 			removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage )
 			finder.addEventListener(FinderEvent.CAPTURE, onCapture)
 			finder.addEventListener(FinderEvent.INIT_START, onInitStart)
@@ -148,6 +131,7 @@ package classes
 		}
 		private function onInitStart(e:FinderEvent):void {
 			trace( "onInitStart" )
+			removeTimer()
 			finder.start()
 			step = 0
 			viewerChange(VIEWER_INTRO)
@@ -172,85 +156,106 @@ package classes
 				onFindComplete(e)
 				return
 			}
-			
-			var btmData:BitmapData = ColorFilter.monoChromeByHueRange(e.data.clone(), 0, 180)
-			var detects:Vector.<DetectData> = detectDice(btmData)
-			trace( "onSetupComplete "+detects.length)
-			var isSuccess = detects.length >=1
-			finder.findResult( isSuccess )
-			if(isSuccess){
-				viewerChange(VIEWER_PLAY_SELECT)
-			}else{
+			/*
+			var resize = finder.getResize(e.data.clone(), 30,30)
+			var btmData:BitmapData = ColorFilter.monoChromeByHueRange(resize)
+			finder.findResult( false )
+			*/
+			var findRect:DetectData = detectRect(e.data.clone())
+			trace( "onSetupComplete " + findRect)
+			if(findRect == null){
 				infoMsg(Config.INFO_MSG_RETRY)
-			}
-				
-			if(isDebugMode){
-				debug1.graphics.beginBitmapFill(btmData, null, false, true);
-				debug1.graphics.drawRect(0, 0, btmData.width, e.data.height);
+				finder.findResult( false )
+			}else{
+				finder.findResult( true )
+				viewerChange(VIEWER_PLAY_SELECT)
 			}
 		}
 		
 		
 		private var step:int =0
-		
 		private function onFindStart(e:FinderEvent):void {
 			trace( "onFindStart" )
 		}
 		
-		
 		private function onFindComplete(e:FinderEvent):void {
-			var btmData:BitmapData = ColorFilter.monoChrome(e.data.clone())
-			var detects:Vector.<DetectData> = detectDice(btmData)
-			trace( "onFindComplete "+detects.length )
+			
+			var findRect:DetectData = detectRect(e.data.clone())
+			trace( "onFindComplete "+findRect )
 			finder.pauseDetect()
-			var success:int = detects.length
-			if(success == 0){
+			if(findRect == null){
 				if(step == 1) infoMsg(Config.INFO_MSG_RETRY)
 				else infoMsg(Config.INFO_MSG_RETRY_PLAY)
 				finder.findResult(false)
-				if(isDebugMode){
-					debug1.graphics.beginBitmapFill(btmData, null, false, true);
-					debug1.graphics.drawRect(0, 0, btmData.width, btmData.height);
-				}
+				
 			} else {
-				onDiceDetected(e.data, detects )
-				if(isDebugMode){
-					debug1.graphics.beginBitmapFill(e.data, null, false, true);
-					debug1.graphics.drawRect(0, 0, e.data.width, e.data.height);
-				}
+				startTimer(e.data)
 			}
 			
 			
 		}
-		
-		private function onDiceDetected( data:BitmapData, dices:Vector.<DetectData> ):void {
+		private var detectResults:Vector.<DetectData>
+		private var findData:BitmapData = null
+		private var timer:Timer
+		private function startTimer(btmData:BitmapData){
+			removeTimer()
 			clearPointers()
-			var len = dices.length
-			var detects:Vector.<DetectData> = new Vector.<DetectData>
-			for(var i:int =0; i< len; ++i ){
-				var colors:Vector.<DetectData> = detectColorDice(dices[i].idx, data)
-				if(colors != null) detects = detects.concat( colors )
-			}	
-			trace( "find all ColorDice "+detects.length )
-			var success:int = detects.length
+			detectResults = new Vector.<DetectData>
+			findData = btmData
+			timer = new Timer(200,Config.INSTRUMENTS.length)
+			timer.addEventListener(TimerEvent.TIMER, onNextDetect)
+			timer.addEventListener(TimerEvent.TIMER_COMPLETE, onCompletedDetect)
+			timer.start()
+		}
+		private function removeTimer(){
+			if(timer == null) return
+			timer.removeEventListener(TimerEvent.TIMER, onNextDetect)
+			timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onCompletedDetect)
+			timer.stop()
+			if(findData != null ) findData.dispose()
+			findData = null
+			timer = null
+			detectResults = null
+		}
+		private function onNextDetect( e:TimerEvent ):void {
+			var color:int = timer.currentCount - 1
+			infoMsg(Config.INFO_MSG_FIND_DICE + color)
+			var range = Config.COLORS[color]
+			var btmData:BitmapData = ColorFilter.monoChromeByHueRange(findData.clone(), range.min, range.max)
+			var colorDice:DetectData = detectDice(btmData, color)
+			if(colorDice != null) detectResults.push(colorDice)
+		}
+		
+		private function onCompletedDetect(e:TimerEvent){
+			trace( "find all ColorDice "+detectResults.length )
+			var success:int = detectResults.length
+			if(success == 1){
+				detectResults.push(detectResults[0])
+				detectResults.push(detectResults[0])	
+				success = 3
+			}else if(success == 2){
+				detectResults.push(detectResults[0])
+				success = 3
+			}
+				
 			if(success == 0){
 				if(step == 1) infoMsg(Config.INFO_MSG_RETRY)
 				else infoMsg(Config.INFO_MSG_RETRY_PLAY)
 				finder.findResult(false)
-					
+				
 			}else if(success == 3){
 				infoMsg()
 				if(step == 1){
-					setSelectedDice(detects)
+					setSelectedDice(detectResults)
 					viewerChange(VIEWER_PLAY_SELECTED)
 					var playSelected:PlaySelected = currentViewer as PlaySelected
-					playSelected.setResult(detects)
+					playSelected.setResult(detectResults)
 					finder.findResult(true)
 				}else{
-					if(isSelectedDice(detects)){
+					if(isSelectedDice(detectResults)){
 						if(step == 3){
 							var playDice:PlayDice = currentViewer as PlayDice
-							playDice.setResult(detects)
+							playDice.setResult(detectResults)
 							
 						}
 						finder.findResult(true)
@@ -323,79 +328,43 @@ package classes
 			this.infoText.text = msg
 		}
 		
+		private function detectRect(data:BitmapData):DetectData{
 		
-		private function detectDice(data:BitmapData, findNum:int = 6):Vector.<DetectData>{
-			var result:Vector.<DetectData> = new Vector.<DetectData>
-			var len =  detectors.length
-			
-			for(var i:int=0; i<len; ++i ){
-				var detector:MakerDetector = diceDetectors[i]
-				var resultDice:DetectData = detector.detect(data,0, i,0)
-				if(resultDice!= null){
-					result.push(resultDice)
-					if(result.length == findNum) return result
-					if(isDebugMode){
-						pointerDice.x = resultDice.tx
-						pointerDice.y =resultDice.ty
-						pointerDice.visible = true
-					}
-				}
+			var btmData:BitmapData = ColorFilter.monoChromeByHueRange(data.clone(), 0, 60, 60)
+			var detector:MakerDetector = diceDetectors[0]
+			var detect:DetectData = detector.detect(btmData,0, 0, 0)
+			if(detect == null) {
+				btmData.dispose()
+				btmData = ColorFilter.monoChromeByHueRange(data.clone(), 160, 220, 60)
+				detect = detector.detect( btmData ,0, 0, 0)
 			}
-			return result
+			if(isDebugMode){
+				debug1.graphics.beginBitmapFill(btmData, null, false, true);
+				debug1.graphics.drawRect(0, 0, btmData.width, btmData.height);
+			}
+			return detect
 		}
 		
-		
-		private function detectColorDice(dice:int, data:BitmapData):Vector.<DetectData>{
-			var len:int = detectors.length
-			var result:Vector.<DetectData> = new Vector.<DetectData>
+		private function detectDice(data:BitmapData, color:int = 0):DetectData{
+			if(isDebugMode){
+				debug1.graphics.beginBitmapFill(data, null, false, true);
+				debug1.graphics.drawRect(0, 0, data.width, data.height);
+			}
+			var len =  diceDetectors.length
 			for(var i:int=0; i<len; ++i ){
-				var detector:MakerDetector = detectors[i][dice]
-				var currentResult:DetectData = detector.detect(data, i, dice, 0.0)
-				
-				if(currentResult!=null){
-					trace( "compare ColorDice "+currentResult.color +" dice : "+ dice)
-					var resultLen:int = result.length
-					if( resultLen == 0 ) {
-						trace( "find new ColorDice "+currentResult.color)
-						result.push( currentResult )
-					}
-					else{
-						var isAnother:Boolean = true
-						for(var x:int=0; x<resultLen; ++x ){
-							var prevResult:DetectData = result[x]	
-							var diffX:Number = prevResult.tx - currentResult.tx
-							var diffY:Number = prevResult.ty - currentResult.ty
-							var distence:Number = Math.sqrt((diffX*diffX) + (diffY*diffY))
-							trace( "compare another distence "+distence)
-							if(distence > 20){
-								
-							} else {
-								isAnother = false
-								if(currentResult.confidence > prevResult.confidence ){
-									trace( "find update ColorDice "+currentResult.color)
-									result[x] = currentResult
-								} else{
-									trace( "find wrong ColorDice "+currentResult.color)
-									currentResult = null
-									break
-								}
-							}
-						}
-						if(isAnother){
-							trace( "find another ColorDice "+currentResult.color)
-							result.push( currentResult)
-						}
-					}
-					if(isDebugMode && currentResult!=null){
-						var pointer:Sprite= pointers[currentResult.color]
-						pointer.x = currentResult.tx
-						pointer.y =currentResult.ty
+				var detector:MakerDetector = diceDetectors[i]
+				var resultDice:DetectData = detector.detect(data, color, i )
+				if(resultDice!= null){
+					if(isDebugMode){
+						var pointer:Sprite = pointers[color]
+						pointer.x = resultDice.tx
+						pointer.y = resultDice.ty
 						pointer.visible = true
 					}
+					return resultDice
 				}
 			}
-			trace( "find ColorDice "+result.length )
-			return result
+			return null
 		}
 		
 		
@@ -406,6 +375,8 @@ package classes
 			}
 		}
 		
+		private var debugBtn:SimpleButton
+		public var debugInfo:TextField
 		private var debug0:Sprite	
 		private var debug1:Sprite	
 		private var pointerDice:Sprite	
@@ -416,6 +387,8 @@ package classes
 				pointer.visible = false
 				pointers.push(pointer)
 			}
+			debugBtn=SimpleButton(DisplayUtil.getChildByName(this,"_debugBtn"));	
+			debugInfo=TextField(DisplayUtil.getChildByName(this,"_debugInfo"));	
 			pointerDice=Sprite(DisplayUtil.getChildByName(this,"_pointer"));	
 			debug0=Sprite(DisplayUtil.getChildByName(this,"_debug0"));	
 			debug1=Sprite(DisplayUtil.getChildByName(this,"_debug1"));	
@@ -424,6 +397,18 @@ package classes
 			debug0.x=320	
 			debug1.scaleX = -1
 			debug1.x= width	
+			debug0.visible = isDebugMode
+			debug1.visible = isDebugMode 
+			debugInfo.visible = isDebugMode 
+			debugBtn.addEventListener(MouseEvent.CLICK, onDebugModeChange)
+		}
+		
+		private function onDebugModeChange(e:MouseEvent){
+			isDebugMode = !isDebugMode
+			clearPointers()
+			debug0.visible = isDebugMode
+			debug1.visible = isDebugMode 
+			debugInfo.visible = isDebugMode 
 		}
 		
 		private function clearPointers(){

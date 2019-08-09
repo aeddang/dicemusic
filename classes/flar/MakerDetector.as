@@ -44,7 +44,7 @@ package classes.flar
 		{
 		}
 		
-		public function init(_cameraFile:String, _codeFile:String, _codeWidth:int = 80, _canvasWidth:int = 320, _canvasHeight:int = 240):void {
+		public function init(_cameraFile:String, _codeFile:String, _canvasWidth:int = 240, _canvasHeight:int = 160, _codeWidth:int = 80):void {
 			cameraFile = _cameraFile;
 			codeFile = _codeFile;
 			codeWidth = _codeWidth;
@@ -70,7 +70,7 @@ package classes.flar
 		}
 		
 		private function onLoadCode(e:Event):void {
-			var scale:Number = 14.04/17.64*100
+			var scale:Number = 394/500 * 100
 			code = new FLARCode(16, 16, scale, scale);
 			code.loadARPatt(loader.data);
 			
@@ -87,25 +87,34 @@ package classes.flar
 		}
 		
 		private var resultMat:FLARTransMatResult = new FLARTransMatResult();
-		public function detect(bitmapData:BitmapData, color:int, dice:int, minConfidence:Number = 0.9):DetectData{
+		public function detect(bitmapData:BitmapData, color:int, dice:int, minConfidence:Number = 0.87):DetectData{
 			capture.bitmapData.draw(bitmapData)
 			var detected:Boolean = false;
 			var confidence:Number = 0
 			try {
-	
-				var find:Boolean = detector.detectMarkerLite(raster, codeWidth)
-				confidence = detector.getConfidence()
-				if( confidence > minConfidence && find == true ){
+				var find:Boolean = false
+				if(minConfidence == 0) {
+					find = detector.detectSquareLite(raster, codeWidth)
+					confidence = 0
+				}
+				else {
+					
+					find = detector.detectMarkerLite(raster, codeWidth)
+					confidence = detector.getConfidence()
+				}
+				
+				if( confidence >= 0.5 && find == true ){
 					trace( "color : "+ color +" ************* dice : "+ dice)
 					trace( "confidence : " +find+" "+confidence)
 				}
-				detected = find && confidence > minConfidence;
+				detected = find && confidence >= minConfidence;
 				
 			} catch (e:Error) {
+				trace( "error : " +e.message)
 				return null
 			}
 			if(detected){
-				detector.getTransformMatrix(resultMat)
+				if(confidence!=0) detector.getTransformMatrix(resultMat)
 				var result:DetectData = new DetectData()
 				result.confidence = confidence
 				result.color = color

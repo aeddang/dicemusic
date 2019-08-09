@@ -1,10 +1,14 @@
 package classes
 {
+	import flash.geom.Point;
+
 	public class Config
 	{
 		public static const CAMERA_FILE:String = 'data/cam.dat'
 		public static const CODE_FILE_PATH = "data/pattern-dice"
 		public static const DICE_NUM:int = 6	
+			
+		public static const CANVAS_SIZE:Point = new Point(320,240)	
 	
 			
 		public static const INSTRUMENTS:Array = [
@@ -17,12 +21,12 @@ package classes
 		]
 			
 		public static const COLORS:Array = [
-			40,
-			80,
-			120,
-			160,
-			200,
-			240
+			{min:0,max:10},
+			{min:15,max:25},
+			{min:25,max:40},
+			{min:160,max:180},
+			{min:180,max:200},
+			{min:200,max:220}
 		]
 			
 		public static const INFO_MSG_INIT:String = "시작 준비중입니다."
@@ -31,5 +35,6 @@ package classes
 		public static const INFO_MSG_RETRY_PLAY:String = "주사위를 다시 던저주세요."
 		public static const INFO_MSG_NEED_MORE_DICE:String = "주사위는 3개가 필요합니다."	
 		public static const INFO_MSG_WRONG_DICE:String = "선택한 주사위를 던저주세요."	
+		public static const INFO_MSG_FIND_DICE:String = "주사위를 검색중..."	
 	}
 }

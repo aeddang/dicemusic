@@ -1,6 +1,7 @@
 package classes.viewer
 {
 	import flash.display.MovieClip;
+	import flash.events.Event;
 	
 	import classes.Main;
 
@@ -8,11 +9,7 @@ package classes.viewer
 	{
 		public function PlaySelect()
 		{
-			Main.instence.finder.pauseDetect()
 		}
 		
-		public function complete(){
-			Main.instence.finder.resumeDetect()
-		}
 	}
 }

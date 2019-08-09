@@ -160,6 +160,8 @@ package org.libspark.flartoolkit.detector {
 			if (number_of_square < 1) {
 				return false;
 			}
+			
+			
 			// 評価基準になるパターンをイメージから切り出す
 			if (!this._patt.pickFromRaster(i_raster, l_square_list.getItem(0) as FLARSquare)) {
 				// パターンの切り出しに失敗
@@ -201,6 +203,42 @@ package org.libspark.flartoolkit.detector {
 			this._detected_direction = direction;
 			this._detected_confidence = confidence;
 			return true;
+		}
+		
+		
+		
+		public function detectSquareLite(i_raster:IFLARRgbRaster, i_threshold:int):Boolean {
+			//サイズチェック
+			if (!this._bin_raster.getSize().isEqualSizeO(i_raster.getSize())) {
+				if (this._sizeCheckEnabled ) 
+					throw new FLARException("サイズ不一致(" + this._bin_raster.getSize() + ":" + i_raster.getSize());
+				else {
+					//サイズに合わせて、２値画像バッファを作る
+					this._bin_raster = new FLARRaster_BitmapData(i_raster.getSize().w, i_raster.getSize().h);
+				}
+			}
+			
+			//ラスタを２値イメージに変換する.
+			this._tobin_filter.setThreshold(i_threshold);
+			this._tobin_filter.doFilter(i_raster, this._bin_raster);
+			
+			
+			this._detected_square = null;
+			var l_square_list:FLARSquareStack = this._square_list;
+			// スクエアコードを探す
+			this._square_detect.detectMarker(this._bin_raster, l_square_list);
+			
+			
+			var number_of_square:int = l_square_list.getLength();
+			// コードは見つかった？
+			
+			trace( "find square " +number_of_square)
+			if (number_of_square < 1) {
+				return false;
+			}
+			
+			return true;
+	
 		}
 
 		/**

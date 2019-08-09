@@ -30,15 +30,16 @@ package classes.camera
 		{
 		}
 		
-		public function init(_canvasWidth:int = 320, _canvasHeight:int = 240, _fps:int = 24):void{
+		public function init(_canvasWidth:int = 240, _canvasHeight:int = 160, _fps:int = 12):void{
 			canvasWidth = _canvasWidth;
 			canvasHeight = _canvasHeight;
 			fps = _fps;
 			capture = new Bitmap(new BitmapData(canvasWidth, canvasHeight, true, 0), PixelSnapping.AUTO, true);
 		}
 		
-		public function start(period:Number = 100){
+		public function start(period:Number = 50){
 			if(camera != null) return
+			
 			camera = Camera.getCamera();
 			if (!camera) {
 				throw new Error('No camera!!!!');
@@ -213,7 +214,7 @@ package classes.camera
 			return ColorFilter.grayScale(getResize(data))
 		}
 		
-		private  function getResize(data:BitmapData, thumbWidth:Number=COMPARE_SIMILARITY_PIXEL, thumbHeight:Number=COMPARE_SIMILARITY_PIXEL):BitmapData {
+		public  function getResize(data:BitmapData, thumbWidth:Number=COMPARE_SIMILARITY_PIXEL, thumbHeight:Number=COMPARE_SIMILARITY_PIXEL):BitmapData {
 			var m:Matrix = new Matrix();
 			m.scale(thumbWidth / data.width, thumbHeight / data.height);
 			var resize:BitmapData = new BitmapData(thumbWidth, thumbHeight, false);

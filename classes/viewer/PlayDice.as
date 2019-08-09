@@ -19,7 +19,7 @@ package classes.viewer
 	import classes.viewer.component.Sheet;
 	import classes.viewer.component.SoundBox;
 	import classes.viewer.component.SoundSet;
-
+	import classes.Config
 	public class PlayDice extends MovieClip
 	{
 		
@@ -127,16 +127,18 @@ package classes.viewer
 			
 			var instruments:Vector.<InstrumentData> = Main.instence.instruments
 			var detects:Vector.<DetectData> = soundBox.results[step]	
-			var len = detects.length
+			var len = detects.length 
 			var playPaths:Vector.<String> = new Vector.<String>()
 			var notePaths:Vector.<String> = new Vector.<String>()
-			for(var i:int=0; i<len; ++i){
+			for(var i:int=0; i<len ; ++i){
 				var detect:DetectData = detects[i]
-				var instrument:InstrumentData = instruments[ detect.color ]
-				instrument.setRandomPath(detect.idx)
+				var instrument:InstrumentData = instruments[ Math.floor( Math.random() * Config.DICE_NUM) ]
+				instrument.setRandomPath(step, Math.floor( Math.random() * Config.DICE_NUM))
 				playPaths.push(instrument.soundPath)
 				notePaths.push(instrument.notePath)
 			}	
+			Main.instence.bgInstrument.setRandomPath(step, Math.floor( Math.random() * Config.DICE_NUM))
+			playPaths.push( Main.instence.bgInstrument.soundPath )
 			Main.instence.soundPlayer.play(	playPaths )
 			soundBox.play( detects, notePaths )
 			step ++

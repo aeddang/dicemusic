@@ -1,4 +1,4 @@
-package com.libs.utils
+﻿package com.libs.utils
 {
 	import flash.display.BitmapData;
 	import flash.filters.ColorMatrixFilter;
@@ -50,10 +50,11 @@ package com.libs.utils
 			return data
 		}
 		
-		public static function monoChromeByHueRange(data:BitmapData, rangeMin:int = 0, rangeMax:int = 256):BitmapData{
+		public static function monoChromeByHueRange(data:BitmapData, rangeMin:int = 0, rangeMax:int = 255, minSaturation:int = 40):BitmapData{
 			var w:int = data.width
-			var h:int = data.height
-			var len:int = w * h
+			var stack:int = 0
+			var num:int = 0
+			var len:int = w * data.height
 			data.lock();   
 			for(var i:int=0;i<len;++i){
 				var tx:int=i%w
@@ -65,13 +66,15 @@ package com.libs.utils
 				var hvs:Object = getHSVfromRGB( r, g, b )
 				var h:int = hvs.h
 				var s:int = hvs.s
-		
-				if(h >= rangeMin && h <= rangeMax && s > 5){
+				if(h >= rangeMin && h <= rangeMax && s > minSaturation){
+					stack += h
+					num++
 					data.setPixel(tx, ty, 0x000000)
 				}else {
 					data.setPixel(tx, ty, 0xffffff)
 				}
 			}
+			//trace("hvs: " + stack/num)
 			data.unlock()
 			return data
 		}
@@ -81,40 +84,34 @@ package com.libs.utils
 			var max:uint = Math.max( r, g, b );
 			var min:uint = Math.min( r, g, b );
 			
+			var hsv:Object = {h:0, s:0, v:0};
+			if(max == 0) return hsv
+			
 			var hue:Number = 0;
 			var saturation:Number = 0;
 			var value:Number = 0;
 			
-			//get Hue
-			if( max == min )
-				hue = 0;
-			else if( max == r )
-				hue = ( 60 * ( g - b ) / ( max - min ) + 360 ) % 360;
-			else if( max == g )
-				hue = ( 60 * ( b - r ) / ( max - min ) + 120 );
-			else if( max == b )
-				hue = ( 60 * ( r - g ) / ( max - min ) + 240 );
-			
 			//get Value
 			value = max;
-			
 			//get Saturation
-			if(max == 0){
-				saturation = 0;
-			}else{
-				saturation = ( max - min ) / max;
-			}
-			
-			var hsv:Object = {};
+			saturation = 255*( max - min ) / value;
+			if(saturation == 0) return hsv
+				
+			//get Hue
+			if( max == min ) hue = 0;
+			else if( max == r ) hue = 0 + 43*Math.abs(g - b)/(max - min)
+			else if( max == g ) hue = 85 + 43*Math.abs(b - r)/(max - min);
+			else if( max == b ) hue = 171 + 43*Math.abs(r - g)/(max - min);
 			hsv.h = Math.round(hue);
-			hsv.s = Math.round(saturation * 100);
-			hsv.v = Math.round(value / 255 * 100);
+			hsv.s = Math.round(saturation)
+			hsv.v = Math.round(value);
 			return hsv;
 		}
 		
 		
 		public static function uintToInt (s:String):int
 		{
+			
 			var n:int;
 			var n0:int = codeToInt(s.slice(0,1));
 			var n1:int = codeToInt(s.slice(1,2));
@@ -134,7 +131,7 @@ package com.libs.utils
 				case "d" : n = 13; break;
 				case "e" : n = 14; break;
 				case "f" : n = 15;break;
-				default : n = s as int; break;
+				default : n = int(s); break;
 			}
 			return n;
 		}
