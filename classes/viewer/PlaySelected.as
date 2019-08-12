@@ -76,6 +76,7 @@ package classes.viewer
 		}
 		
 		private function onCount(e:TimerEvent):void {
+			Main.instence.finder.pauseDetect()
 			var c:int = 5 - timer.currentCount
 			if(c < 0) c = 0
 			count.text = c.toString()	

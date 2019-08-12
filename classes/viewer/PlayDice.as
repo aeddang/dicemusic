@@ -132,13 +132,20 @@ package classes.viewer
 			var notePaths:Vector.<String> = new Vector.<String>()
 			for(var i:int=0; i<len ; ++i){
 				var detect:DetectData = detects[i]
-				var instrument:InstrumentData = instruments[ Math.floor( Math.random() * Config.DICE_NUM) ]
-				instrument.setRandomPath(step, Math.floor( Math.random() * Config.DICE_NUM))
+				var color = Math.floor( Math.random() * Config.COLORS.length)
+				if( color == Config.COLORS.length) color = Config.COLORS.length-1
+				var instrument:InstrumentData = instruments[ color ]
+				instrument.setRandomPath(step, detect.idx)
 				playPaths.push(instrument.soundPath)
 				notePaths.push(instrument.notePath)
 			}	
-			Main.instence.bgInstrument.setRandomPath(step, Math.floor( Math.random() * Config.DICE_NUM))
+			/*
+			var choice = Math.floor( Math.random() * Config.DICE_NUM)
+			if(choice == Config.DICE_NUM) choice = Config.DICE_NUM-1
+			Main.instence.bgInstrument.setRandomPath(step, choice)
 			playPaths.push( Main.instence.bgInstrument.soundPath )
+			*/
+			trace("nextSound "+ playPaths.length+" / "+step)
 			Main.instence.soundPlayer.play(	playPaths )
 			soundBox.play( detects, notePaths )
 			step ++

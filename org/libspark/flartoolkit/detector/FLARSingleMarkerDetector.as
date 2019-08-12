@@ -227,8 +227,7 @@ package org.libspark.flartoolkit.detector {
 			var l_square_list:FLARSquareStack = this._square_list;
 			// スクエアコードを探す
 			this._square_detect.detectMarker(this._bin_raster, l_square_list);
-			
-			
+		
 			var number_of_square:int = l_square_list.getLength();
 			// コードは見つかった？
 			

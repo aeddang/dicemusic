@@ -26,23 +26,21 @@ package classes.player {
 	
 		public function SoundPlayer() {
 			
-		
+			
 		}
 		
 		public function play(playList:Vector.<String>){
 			stop()
 			currentPlayTime = 0
-			snds = new Vector.<Sound>();  
-			channels = new Vector.<SoundChannel>()
+			snds = new Vector.<Sound>();   
+			channels = new Vector.<SoundChannel>(playList.length)
 			for(var i:int=0; i< playList.length; ++i){
 				trace("play sound " + playList[i])
-				var snd:Sound =  new Sound()
+				var snd:Sound =  new Sound()    
+				snds.push(snd)                  
 				snd.addEventListener(IOErrorEvent.IO_ERROR, onError);
 				snd.addEventListener(Event.COMPLETE, onLoaded);
 				snd.load(new URLRequest(playList[i]))
-				snds.push(snd)
-				var channel:SoundChannel = snd.play(0)
-				channels.push(channel)
 			}
 			
 			timer = new Timer(30)
@@ -60,16 +58,16 @@ package classes.player {
 			if(snds != null){
 				for(var i:int=0; i< snds.length; ++i){
 					var snd:Sound = snds[i]
-					snd.addEventListener(IOErrorEvent.IO_ERROR, onError);
-					snd.addEventListener(Event.COMPLETE, onLoaded);
+					snd.removeEventListener(IOErrorEvent.IO_ERROR, onError);
+					snd.removeEventListener(Event.COMPLETE, onLoaded);
 					try{
 						snd.close()
 					} catch (e:Error){
-						trace("sound not open!!")
+						//trace("sound not open!!")
 					}
 				}
-				snds = null
 				mainSnd = null
+				snds = null
 			}
 		}
 		
@@ -85,21 +83,26 @@ package classes.player {
 		}
 		private function onLoaded(event:Event):void {
 			var snd:Sound = event.currentTarget as Sound
+			var channel:SoundChannel = snd.play(0)
+			var idx:int = snds.indexOf(snd)
+			channels[idx] = channel
 			if(currentPlayTime < snd.length){
 				if(mainChannel != null) mainChannel.removeEventListener(Event.SOUND_COMPLETE, onCompleted)
 				currentPlayTime = snd.length
-				var idx:int = snds.indexOf(snd)
-				mainChannel = channels[idx]
+				if(isNaN(currentPlayTime)) currentPlayTime = 200
+				mainChannel = channel
 				mainSnd = snd
 				mainChannel.addEventListener(Event.SOUND_COMPLETE, onCompleted)
 				trace("currentPlayTime ->" + currentPlayTime )
 			}	
+			
 		}
 		
 		private function onProgress(event:TimerEvent):void {
+		
 			if(mainChannel == null) return
 			var pct:Number = mainChannel.position / currentPlayTime
-				
+			
 			dispatchEvent(new PlayerEvent(PlayerEvent.PROGRESS, pct))
 		}
 		private function onCompleted(event:Event):void {

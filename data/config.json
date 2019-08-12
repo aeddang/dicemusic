@@ -1,0 +1,10 @@
+{
+  "colors":[
+    {"min":0,"max":10,"saturation":40},
+  	{"min":15,"max":30,"saturation":40},
+  	{"min":30,"max":60,"saturation":40},
+  	{"min":160,"max":180,"saturation":40},
+  	{"min":180,"max":200,"saturation":40},
+  	{"min":205,"max":235,"saturation":40}
+  ]
+}

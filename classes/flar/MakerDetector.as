@@ -87,7 +87,7 @@ package classes.flar
 		}
 		
 		private var resultMat:FLARTransMatResult = new FLARTransMatResult();
-		public function detect(bitmapData:BitmapData, color:int, dice:int, minConfidence:Number = 0.87):DetectData{
+		public function detect(bitmapData:BitmapData, color:int, dice:int, minConfidence:Number = 0.80):DetectData{
 			capture.bitmapData.draw(bitmapData)
 			var detected:Boolean = false;
 			var confidence:Number = 0

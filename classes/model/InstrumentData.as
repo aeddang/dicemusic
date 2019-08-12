@@ -71,16 +71,17 @@ package classes.model
 			
 			var key:String = "0"+(dice+1)
 			var mps:Array = soundDirectory.getDirectoryListing(); 
-			
+			//trace(soundDir + "*********************")
 			for (var i:int = 0; i < mps.length; i++)  
 			{ 
 				var mp:String = mps[i].name
 				if( mp.indexOf(key) != -1) {
+					//trace(mp)
 					if(mp.indexOf(".mp3") != -1) sounds.push(soundDir + mp)
 					if(mp.indexOf(".jpg") != -1) notes.push(soundDir + mp)
 				}
 			} 	
-		
+			//trace("*********************")
 			soundSets.push(sounds.sort(0))
 			noteSets.push(notes.sort(0))
 		}

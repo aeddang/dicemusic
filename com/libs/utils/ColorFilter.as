@@ -50,22 +50,27 @@
 			return data
 		}
 		
-		public static function monoChromeByHueRange(data:BitmapData, rangeMin:int = 0, rangeMax:int = 255, minSaturation:int = 40):BitmapData{
+		public static function monoChromeByHueRange(data:BitmapData, rangeMin:uint = 0, rangeMax:uint = 255, minSaturation:int = 40):BitmapData{
 			var w:int = data.width
 			var stack:int = 0
 			var num:int = 0
 			var len:int = w * data.height
 			data.lock();   
+			var dr:uint = 256 *256 
+			var dg:uint = 256 
+			var db:uint = 256 
 			for(var i:int=0;i<len;++i){
 				var tx:int=i%w
 				var ty:int=Math.floor(i/w)
-				var color:String =	data.getPixel(tx,ty).toString(16)
-				var r:int = uintToInt ( color.slice(0,2) )
-				var g:int = uintToInt ( color.slice(2,4) )
-				var b:int = uintToInt ( color.slice(4,6) )
+				var color:uint = data.getPixel(tx,ty)
+				var r:uint = (color/dr) % db//uintToInt ( color.slice(0,2) )
+				var g:uint = (color/dg) % db//uintToInt ( color.slice(2,4) )
+				var b:uint = color % db//uintToInt ( color.slice(4,6) )
 				var hvs:Object = getHSVfromRGB( r, g, b )
 				var h:int = hvs.h
 				var s:int = hvs.s
+					
+				//trace("color: " + color +" r:" + r + " g:"+g +" b:"+b)
 				if(h >= rangeMin && h <= rangeMax && s > minSaturation){
 					stack += h
 					num++
@@ -74,7 +79,7 @@
 					data.setPixel(tx, ty, 0xffffff)
 				}
 			}
-			//trace("hvs: " + stack/num)
+			
 			data.unlock()
 			return data
 		}
