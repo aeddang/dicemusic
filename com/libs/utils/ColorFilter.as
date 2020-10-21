@@ -50,10 +50,9 @@
 			return data
 		}
 		
-		public static function monoChromeByHueRange(data:BitmapData, rangeMin:uint = 0, rangeMax:uint = 255, minSaturation:int = 40):BitmapData{
+		public static function monoChromeByHueRange(data:BitmapData, rangeMin:uint = 0, rangeMax:uint = 255, minSaturation:int = 40, minBrightness:int = 30):BitmapData{
 			var w:int = data.width
-			var stack:int = 0
-			var num:int = 0
+			
 			var len:int = w * data.height
 			data.lock();   
 			var dr:uint = 256 *256 
@@ -69,15 +68,27 @@
 				var hvs:Object = getHSVfromRGB( r, g, b )
 				var h:int = hvs.h
 				var s:int = hvs.s
+				var v:int = hvs.v
+				if(rangeMin >= rangeMax){
+					if(h >= rangeMin){
+						data.setPixel(tx, ty, 0x000000)
+					}else if(h >= 0 && h <= rangeMax && s >= minSaturation && v >= minBrightness){
+						data.setPixel(tx, ty, 0x000000)
+						
+					}else {
+						data.setPixel(tx, ty, 0xffffff)
+					}
+				}else{
+					if(h >= rangeMin && h <= rangeMax && s >= minSaturation && v >= minBrightness){
+						data.setPixel(tx, ty, 0x000000)
+
+					}else {
+						data.setPixel(tx, ty, 0xffffff)
+					}
+				}
 					
 				//trace("color: " + color +" r:" + r + " g:"+g +" b:"+b)
-				if(h >= rangeMin && h <= rangeMax && s > minSaturation){
-					stack += h
-					num++
-					data.setPixel(tx, ty, 0x000000)
-				}else {
-					data.setPixel(tx, ty, 0xffffff)
-				}
+				
 			}
 			
 			data.unlock()
@@ -91,7 +102,7 @@
 			
 			var hsv:Object = {h:0, s:0, v:0};
 			if(max == 0) return hsv
-			
+			var delta:Number = (max - min)
 			var hue:Number = 0;
 			var saturation:Number = 0;
 			var value:Number = 0;
@@ -99,17 +110,21 @@
 			//get Value
 			value = max;
 			//get Saturation
-			saturation = 255*( max - min ) / value;
+			saturation = 100*delta / value;
 			if(saturation == 0) return hsv
 				
 			//get Hue
 			if( max == min ) hue = 0;
-			else if( max == r ) hue = 0 + 43*Math.abs(g - b)/(max - min)
-			else if( max == g ) hue = 85 + 43*Math.abs(b - r)/(max - min);
-			else if( max == b ) hue = 171 + 43*Math.abs(r - g)/(max - min);
-			hsv.h = Math.round(hue);
+			else if( max == r ) hue = 0 + (g - b)/delta;
+			else if( max == g ) hue = 2 + (b - r)/delta;
+			else if( max == b ) hue = 4 + (r - g)/delta;
+			hsv.h = Math.round(hue * 60);
+			//if(hsv.h < 0) hsv.h += 360
 			hsv.s = Math.round(saturation)
-			hsv.v = Math.round(value);
+			hsv.v = Math.round(value * 100/255);
+			//if(hsv.s > 20){
+				//trace("color: " + hsv.h +" s:" + hsv.s + " v:"+hsv.v)
+			//}
 			return hsv;
 		}
 		

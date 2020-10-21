@@ -54,6 +54,13 @@ package classes.viewer.component
 			}
 		}
 		
+		public function setCurrentSubStep(subStep:int){
+			for(var i:int=0; i<currentDiceSet.length; ++i){
+				if(subStep == i ) currentDiceSet[i].alpha = 1
+				else currentDiceSet[i].alpha = 0.5
+			}
+		}
+		
 		public function setCurrentStep(step:int){
 			changeStep(step)
 			for(var i:int=0; i<currentDiceSet.length; ++i){

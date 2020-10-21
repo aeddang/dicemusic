@@ -15,6 +15,7 @@ package classes.model
 		public var confidence:Number = 0
 		public var tx:int = -1	
 		public var ty:int = -1	
+		public var r:int = 0	
 		public function DetectData()
 		{
 		}

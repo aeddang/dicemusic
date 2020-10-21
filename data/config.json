@@ -1,10 +1,10 @@
 {
   "colors":[
-    {"min":0,"max":10,"saturation":40},
-  	{"min":15,"max":30,"saturation":40},
-  	{"min":30,"max":60,"saturation":40},
-  	{"min":160,"max":180,"saturation":40},
-  	{"min":180,"max":200,"saturation":40},
-  	{"min":205,"max":235,"saturation":40}
+    {"min":0,"max":20,"saturation":25, "brightness":0},
+  	{"min":15,"max":35,"saturation":30, "brightness":0},
+  	{"min":40,"max":60,"saturation":30, "brightness":0},
+  	{"min":100,"max":170,"saturation":35, "brightness":0},
+  	{"min":170,"max":210,"saturation":35, "brightness":0},
+  	{"min":220,"max":290,"saturation":25, "brightness":0}
   ]
 }

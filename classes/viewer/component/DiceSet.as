@@ -25,5 +25,7 @@ package classes.viewer.component
 			currentDice.gotoAndStop(idx+1)
 			currentDice.visible = true
 		}
+		
+	
 	}
 }

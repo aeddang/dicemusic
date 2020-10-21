@@ -7,6 +7,7 @@
 	{
 		public static const PROGRESS:String = "progress";
 		public static const COMPLETED:String = "completed";
+		public static const CURRENT_COMPLETED:String = "currentCompleted";
 		private var _data:Number;
 		
 		public function PlayerEvent( type:String, __data:Number=0, bubble:Boolean = false, cancelable:Boolean = false )

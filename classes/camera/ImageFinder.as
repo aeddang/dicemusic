@@ -30,7 +30,7 @@ package classes.camera
 		{
 		}
 		
-		public function init(_canvasWidth:int = 240, _canvasHeight:int = 160, _fps:int = 12):void{
+		public function init(_canvasWidth:int = 320, _canvasHeight:int = 240, _fps:int = 12):void{
 			canvasWidth = _canvasWidth;
 			canvasHeight = _canvasHeight;
 			fps = _fps;
@@ -87,7 +87,7 @@ package classes.camera
 		private static const MIN_CHANGE_STACK:int = 1
 		private static const MIN_RETRY_STACK:int = 10 * 5
 		private static const MIN_RESET_STACK:int = 10 * 10
-		private static const COMPARE_SIMILARITY_PIXEL:int = 2
+		private static const COMPARE_SIMILARITY_PIXEL:int = 5
 		
 		private var prevData:BitmapData;
 		private var initData:BitmapData;

@@ -18,13 +18,16 @@ package classes.viewer.component
 	{
 		private var instrument:MovieClip
 		private var note:MovieClip
+	    var noteBg:MovieClip
 		private var imageLoader:Loader
 		public function SoundSet()
 		{
 			instrument = MovieClip(DisplayUtil.getChildByName(this,"_instrument"));	
 			note = MovieClip(DisplayUtil.getChildByName(this,"_note"));	
+			noteBg = MovieClip(DisplayUtil.getChildByName(this,"_bg"));	
 			instrument.stop()
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemovedToStage )
+			noteBg.visible = false
 		}
 		
 		private function onRemovedToStage(e:Event = null):void {

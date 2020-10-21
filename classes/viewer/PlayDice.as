@@ -1,4 +1,4 @@
-package classes.viewer
+﻿package classes.viewer
 {
 	import com.greensock.TweenLite;
 	import com.libs.utils.DisplayUtil;
@@ -44,16 +44,17 @@ package classes.viewer
 		
 			diceSets.visible = false
 			motion.visible = false
-			soundBox.visible = false
+			//soundBox.visible = false
 			diceSets.alpha = 0
 			motion.alpha = 0
-			soundBox.alpha = 0
-			next()
+			//soundBox.alpha = 0
+			
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemovedToStage )
 		}
 		
 		private function onRemovedToStage(e:Event = null):void {
 			removeEventListener(Event.REMOVED_FROM_STAGE, onRemovedToStage )
+			Main.instence.soundPlayer.removeEventListener(PlayerEvent.CURRENT_COMPLETED, subStepNext)
 			Main.instence.soundPlayer.removeEventListener(PlayerEvent.COMPLETED, nextSound)
 			Main.instence.soundPlayer.removeEventListener(PlayerEvent.PROGRESS, onProress)
 			Main.instence.soundPlayer.stop()
@@ -66,25 +67,62 @@ package classes.viewer
 		
 		private var timer:Timer
 		private var step:int = 0
+		private var subStep:int = 0	
+		private var currentPlayPaths:Vector.<String>
+		private var currentInstruments:Vector.<InstrumentData>
 		private static const COMPLETE_STEP:int = 5
+		private var	defaultDetects:Vector.<DetectData> = null
+			
+		
+		public function start(detects:Vector.<DetectData>){
+			defaultDetects = detects
+			next()
+		}
+			
 		public function setResult(detects:Vector.<DetectData>){
 			var instruments:Vector.<InstrumentData> = Main.instence.instruments
 			soundBox.setResult(step, detects)
 			sheet.setResult(step,detects)
-				
+			currentInstruments = new Vector.<InstrumentData>()
+			var playPaths:Vector.<String> = new Vector.<String>()	
+			var notePaths:Vector.<String> = new Vector.<String>()
 			var len:int = detects.length
 			for(var i:int=0; i<len; ++i){
 				var detect:DetectData = detects[i]
+				
 				dices[i].setDice(detect.color, detect.idx)
 				var name:String = instruments[detect.color].name
 				texts[i].text = name
+				var instrument:InstrumentData = instruments[detect.color ]
+				detect.r = instrument.getRandomPath(step, detect.idx)
+				currentInstruments.push(instrument)
+				playPaths.push(instrument.getSoundPath(step, detect.idx, detect.r))
+				notePaths.push(instrument.getNotePath(step, detect.idx, detect.r))
 			}	
 			step ++
-			TweenLite.to(diceSets, 0.3, {autoAlpha:1});
+			subStep =0
+			soundBox.play( detects, notePaths , false)
+			currentPlayPaths = playPaths
 			motion.stop()
 			TweenLite.to(motion, 0.3, {autoAlpha:0});
 			Main.instence.finder.pauseDetect()
-			startTimer()
+			Main.instence.soundPlayer.addEventListener(PlayerEvent.CURRENT_COMPLETED, subStepNext)
+			subStepNext()
+			//startTimer()
+		}
+		
+		private function subStepNext(e:PlayerEvent = null){
+			if(subStep >= currentPlayPaths.length ){
+				Main.instence.soundPlayer.removeEventListener(PlayerEvent.CURRENT_COMPLETED, subStepNext)
+				next();
+				return
+			}
+			soundBox.setCurrentSubStep(subStep)
+			sheet.setCurrentSubStep(subStep)
+			Main.instence.infoMsg(currentInstruments[subStep].name +" "+ Config.INFO_MSG_SOLO)
+			var path:String = currentPlayPaths[subStep]
+			Main.instence.soundPlayer.currentPlay(path)
+			subStep++
 		}
 		
 		private function next(e:TimerEvent = null){
@@ -94,11 +132,20 @@ package classes.viewer
 			}
 			sheet.setNextStep( step )
 			Main.instence.finder.resumeDetect()
-			TweenLite.to(diceSets, 0.3, {autoAlpha:0});
+		
+			var instruments:Vector.<InstrumentData> = Main.instence.instruments
+			var len:int = defaultDetects.length
+			var notePaths:Vector.<String> = new Vector.<String>()
+			for(var i:int=0; i<len; ++i){
+				var detect:DetectData = defaultDetects[i]
+				var instrument:InstrumentData = instruments[detect.color ]
+				notePaths.push(instrument.getDefaultPath(step, detect.idx))
+			}	
+			soundBox.reset(defaultDetects, notePaths)
 			motion.play()
 			TweenLite.to(motion, 0.3, {autoAlpha:1});
 			trace("next " + step)
-		
+			Main.instence.infoMsg(Config.INFO_MSG_RETRY)
 		}
 		
 		private function complete(){
@@ -121,6 +168,7 @@ package classes.viewer
 		private function nextSound(e:Event = null){
 			if(step >= COMPLETE_STEP){
 				Main.instence.finder.reset()
+				Main.instence.infoMsg(Config.INFO_MSG_RETRY)
 				return
 			}
 			sheet.setCurrentStep(step)
@@ -132,29 +180,26 @@ package classes.viewer
 			var notePaths:Vector.<String> = new Vector.<String>()
 			for(var i:int=0; i<len ; ++i){
 				var detect:DetectData = detects[i]
-				var color = Math.floor( Math.random() * Config.COLORS.length)
-				if( color == Config.COLORS.length) color = Config.COLORS.length-1
-				var instrument:InstrumentData = instruments[ color ]
-				instrument.setRandomPath(step, detect.idx)
-				playPaths.push(instrument.soundPath)
-				notePaths.push(instrument.notePath)
+				var instrument:InstrumentData = instruments[detect.color ]
+				playPaths.push(instrument.getSoundPath(step, detect.idx, detect.r))
+				notePaths.push(instrument.getNotePath(step, detect.idx, detect.r))
 			}	
-			/*
+			
 			var choice = Math.floor( Math.random() * Config.DICE_NUM)
 			if(choice == Config.DICE_NUM) choice = Config.DICE_NUM-1
-			Main.instence.bgInstrument.setRandomPath(step, choice)
-			playPaths.push( Main.instence.bgInstrument.soundPath )
-			*/
-			trace("nextSound "+ playPaths.length+" / "+step)
+			var r:int = Main.instence.bgInstrument.getRandomPath(step, choice)
+			playPaths.push( Main.instence.bgInstrument.getSoundPath(step, choice, r) )
+		
 			Main.instence.soundPlayer.play(	playPaths )
 			soundBox.play( detects, notePaths )
 			step ++
+			Main.instence.infoMsg(Config.INFO_MSG_CONCERT)
 		}
 		
 		
 		private function startTimer(){
 			removeTimer()
-			timer = new Timer(3000,1)
+			timer = new Timer(4000,1)
 			timer.addEventListener(TimerEvent.TIMER_COMPLETE, next)
 			timer.start()
 		}

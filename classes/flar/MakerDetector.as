@@ -44,7 +44,7 @@ package classes.flar
 		{
 		}
 		
-		public function init(_cameraFile:String, _codeFile:String, _canvasWidth:int = 240, _canvasHeight:int = 160, _codeWidth:int = 80):void {
+		public function init(_cameraFile:String, _codeFile:String, _canvasWidth:int = 320, _canvasHeight:int = 240, _codeWidth:int = 80):void {
 			cameraFile = _cameraFile;
 			codeFile = _codeFile;
 			codeWidth = _codeWidth;
@@ -96,6 +96,7 @@ package classes.flar
 				if(minConfidence == 0) {
 					find = detector.detectSquareLite(raster, codeWidth)
 					confidence = 0
+					//if(find) trace( "find rect color : "+ color)
 				}
 				else {
 					
@@ -104,8 +105,8 @@ package classes.flar
 				}
 				
 				if( confidence >= 0.5 && find == true ){
-					trace( "color : "+ color +" ************* dice : "+ dice)
-					trace( "confidence : " +find+" "+confidence)
+					///trace( "color : "+ color +" ************* dice : "+ dice)
+					//trace( "confidence : " +find+" "+confidence)
 				}
 				detected = find && confidence >= minConfidence;
 				

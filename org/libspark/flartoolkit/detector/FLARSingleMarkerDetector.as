@@ -231,7 +231,7 @@ package org.libspark.flartoolkit.detector {
 			var number_of_square:int = l_square_list.getLength();
 			// コードは見つかった？
 			
-			trace( "find square " +number_of_square)
+	
 			if (number_of_square < 1) {
 				return false;
 			}

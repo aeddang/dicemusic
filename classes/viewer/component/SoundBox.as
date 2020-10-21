@@ -19,15 +19,33 @@ package classes.viewer.component
 				soundSets.push( soundSet )
 			}
 			bar = MovieClip(DisplayUtil.getChildByName(this,"_bar"));
+			bar.visible = false
 		}
-		public function play(detects:Vector.<DetectData>, notePaths:Vector.<String>){
+		public function play(detects:Vector.<DetectData>, notePaths:Vector.<String>, isProgress:Boolean = true){
+			bar.visible = isProgress
 			for(var i:int=0; i<detects.length; ++i){
 				soundSets[i].setSelect(detects[i].color)
 				soundSets[i].loadImage(notePaths[i])
+				soundSets[i].noteBg.visible = false
 			}
 		}
 		
+		public function reset(detects:Vector.<DetectData>, notePaths:Vector.<String>){
+			bar.visible = false
+			for(var i:int=0; i<detects.length; ++i){
+				soundSets[i].setSelect(detects[i].color)
+				soundSets[i].loadImage(notePaths[i])
+				soundSets[i].noteBg.visible = false
+			}
+		}
 		
+		public function setCurrentSubStep(subStep:int){
+			for(var i:int=0; i<soundSets.length; ++i){
+				if(subStep == i ) soundSets[i].noteBg.visible = true
+				else soundSets[i].noteBg.visible = false
+			}
+		}
+	
 		public function setResult(step:int, detects:Vector.<DetectData>){
 			results.push(detects)
 		}

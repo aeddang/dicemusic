@@ -23,11 +23,32 @@ package classes.player {
 		private var channels:Vector.<SoundChannel>
 		private var timer:Timer
 		private var currentPlayTime:Number = 0
-	
+		private var currentSnd:Sound
+		private var currentChannel:SoundChannel
 		public function SoundPlayer() {
 			
 			
 		}
+		public function currentPlay(playList:String){
+			stop()
+			currentSnd =  new Sound()    
+			currentSnd.addEventListener(IOErrorEvent.IO_ERROR, onCurrentError);
+			currentSnd.addEventListener(Event.COMPLETE, onCurrentLoaded);
+			currentSnd.load(new URLRequest(playList))
+		}
+		private function onCurrentLoaded(event:Event):void {
+			currentChannel = currentSnd.play(0)
+			currentChannel.addEventListener(Event.SOUND_COMPLETE, onCurrentCompleted)
+		}
+		
+		private function onCurrentCompleted(event:Event):void {
+			dispatchEvent(new PlayerEvent(PlayerEvent.CURRENT_COMPLETED))	
+		}
+		
+		private function onCurrentError(event:Event):void {
+			dispatchEvent(new PlayerEvent(PlayerEvent.CURRENT_COMPLETED))	
+		}
+		
 		
 		public function play(playList:Vector.<String>){
 			stop()
@@ -49,10 +70,31 @@ package classes.player {
 		}
 		
 		public function stop(){
-			
+			stopSnd()
+			stopChannel()
 		    removeTimer()
 			stopChannels()
 			stopSnds()
+		}
+		private function stopSnd(){
+			if(currentSnd != null){
+				currentSnd.removeEventListener(IOErrorEvent.IO_ERROR, onCurrentError);
+				currentSnd.removeEventListener(Event.COMPLETE, onCurrentLoaded);
+				try{
+					currentSnd.close()
+				} catch (e:Error){
+					//trace("sound not open!!")
+				}
+				currentSnd = null
+			}
+		}
+		
+		private function stopChannel(){
+			if(currentChannel != null){
+				currentChannel.stop()
+				currentChannel.removeEventListener(Event.SOUND_COMPLETE, onCurrentCompleted)
+				currentChannel = null
+			}
 		}
 		private function stopSnds(){
 			if(snds != null){
@@ -86,6 +128,7 @@ package classes.player {
 			var channel:SoundChannel = snd.play(0)
 			var idx:int = snds.indexOf(snd)
 			channels[idx] = channel
+			trace("snd.length ->" + snd.length )
 			if(currentPlayTime < snd.length){
 				if(mainChannel != null) mainChannel.removeEventListener(Event.SOUND_COMPLETE, onCompleted)
 				currentPlayTime = snd.length
